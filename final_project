@@ -1,0 +1,60 @@
+# This app will allow a user to search recipes by an ingredient they want to use up from their store cupboard, select a recipe (having been able to see the allergens) and then output the ingredients into a shopping list
+# Created to run in Pycharm
+
+import requests
+
+#Call API and return data
+def recipe_search(ingredient,meal_type):
+    app_id = '7977716b'
+    app_key = '0657d66811d117dbd79b0267d3f687a2'
+    result = requests.get(
+        'https://api.edamam.com/search?q={}&app_id={}&app_key={}'.format(ingredient, app_id, app_key)
+    )
+    data = result.json()
+
+    return data['hits']
+
+#Ask user to select a meal
+def run_recipe_search():
+    has_meal_type = input('Are you looking for a particular type of meal? ')
+    if has_meal_type == 'yes':
+          meal_type = input(
+              'Select an option from the following list:'
+              '\n - breakfast'
+              '\n - brunch'
+              '\n - lunch'
+              '\n - snack'
+              '\n - teatime'
+              '\n > '
+          )
+    else:
+        meal_type = None
+
+
+#Ask user to select an ingredient
+    ingredient = input('What ingredient do you want to use up? ')
+
+#Return recipes containing user-selected ingredient and create dictionaries containing values to write to file
+    results = recipe_search(ingredient, meal_type)
+    recipe_dict = {}
+    for result in results:
+        recipe = result['recipe']
+        print(recipe['label'])
+        print(recipe['url'])
+        print(recipe['ingredientLines'])
+        print(recipe['healthLabels'])
+        print(recipe['mealType'])
+        print()
+        in_a_dictionary = {"url": recipe['url'], "ingredients": recipe['ingredientLines']}
+        recipe_dict[recipe["label"]] = in_a_dictionary
+
+#Ask user to select one of the returned recipes
+    user_input = input("Please enter a recipe from the above list and we will write your shopping list: ")
+
+#Write recipe label, url & ingredients to file
+    with open('recipe.txt', 'w+') as recipe_file:
+      recipe_file.write(user_input)
+      recipe_file.write("\n")
+      recipe_file.write(str(recipe_dict[user_input]))
+
+run_recipe_search()
